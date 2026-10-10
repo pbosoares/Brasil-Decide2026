@@ -1,0 +1,6 @@
+# Acrescentar ao Caddyfile existente, preservando o bloco do ecommerce.
+# O container Caddy já usa a rede ecommerce_web.
+brasildecide.pablo-soares.tech {
+    encode zstd gzip
+    reverse_proxy brasil-decide-frontend:8080
+}

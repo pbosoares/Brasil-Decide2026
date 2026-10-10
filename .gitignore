@@ -3,6 +3,7 @@ backend/target/
 backend/data/
 data/
 .env
+deploy/.env.vps
 frontend/node_modules/
 frontend/dist/
 frontend/test-results/

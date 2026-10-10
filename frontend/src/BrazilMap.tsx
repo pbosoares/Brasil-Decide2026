@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import map from './assets/brazil.json';
+import { candidateColor, type CandidateProfile } from './candidates';
 import { states, stateName } from './states';
-import { colors, number, percent, type Candidate, type Snapshot } from './data';
+import { number, percent, type Snapshot } from './data';
 
-export default function BrazilMap({ snapshot, candidates, selected, select }: { snapshot: Snapshot | null; candidates: Candidate[]; selected: string; select: (uf: string) => void }) {
+export default function BrazilMap({ snapshot, candidates, selected, select }: { snapshot: Snapshot | null; candidates: CandidateProfile[]; selected: string; select: (uf: string) => void }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const active = hovered ? snapshot?.estados[hovered]?.resultado : null;
   const data = map as Record<string, { path: string; label: number[] }>;
@@ -14,7 +15,7 @@ export default function BrazilMap({ snapshot, candidates, selected, select }: { 
       {states.map(([uf, name]) => {
         const result = snapshot?.estados[uf]?.resultado;
         const index = candidates.findIndex(c => c.id === result?.liderId);
-        const fill = result?.divulgacaoPermitida && index >= 0 ? colors[index % colors.length] : '#263341';
+        const fill = result?.divulgacaoPermitida && index >= 0 ? candidateColor(candidates[index]) : '#263341';
         const {path, label} = data[uf];
         return <g key={uf}>
           <path d={path} fill={fill} className={`state-path ${selected === uf ? 'selected' : ''}`} role="button" tabIndex={0} aria-label={`Selecionar ${name}`} aria-pressed={selected === uf}

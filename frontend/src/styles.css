@@ -18,3 +18,11 @@
 .candidate-avatar svg,.candidate-avatar img{grid-area:1/1}.candidate-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
 .skip-link{top:12px;opacity:0;pointer-events:none;transform:translateY(-160%)}.skip-link:focus{opacity:1;pointer-events:auto;transform:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+
+/* Candidate colors follow official registration IDs, independent of vote order. */
+.candidate-card,.candidate-card:last-child{border-color:color-mix(in srgb,var(--candidate-color) 28%,#23303f);background:linear-gradient(135deg,color-mix(in srgb,var(--candidate-color) 12%,#141d29),#141d29)}
+.candidate-avatar,.candidate-card:last-child .candidate-avatar{width:80px;height:104px;overflow:hidden;border-color:color-mix(in srgb,var(--candidate-color) 35%,transparent);background:color-mix(in srgb,var(--candidate-color) 8%,transparent)}
+.candidate-avatar img{object-position:top}
+.local-avatar{display:grid;overflow:hidden;flex-shrink:0}.local-avatar svg,.local-avatar img{grid-area:1/1}.local-avatar img{width:100%;height:100%;object-fit:cover;object-position:top;border-radius:inherit}
+.brazil-map .state-path:focus,.brazil-map .state-path:focus-visible{outline:none}.brazil-map .state-path:focus-visible{stroke:var(--lime);stroke-width:3;filter:brightness(1.25)}
+@media(max-width:520px){.candidate-avatar,.candidate-card:last-child .candidate-avatar{width:64px;height:84px}}

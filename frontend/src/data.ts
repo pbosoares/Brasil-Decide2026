@@ -33,11 +33,10 @@ export type Manifest = z.infer<typeof manifestSchema>;
 export const number = (value: number | undefined) => value === undefined ? '—' : new Intl.NumberFormat('pt-BR').format(value);
 export const percent = (value: number | undefined) => value === undefined ? '—' : `${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
 export const time = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(value)) : 'Ainda sem atualização';
-export const colors = ['#68c3d4', '#b39ce7', '#e9b967', '#ef92ac'];
 export const candidateOrder = (candidates: Candidate[]) => [...candidates].sort((a,b) => a.numero.localeCompare(b.numero, 'pt-BR', { numeric: true }) || a.id.localeCompare(b.id));
 export function isStale(snapshot: Snapshot | null, status: SourceStatus | null, now = Date.now()) {
   if (!snapshot || !status || status.desatualizado || status.estado !== 'DISPONIVEL' || !status.ultimaVerificacao || now - Date.parse(status.ultimaVerificacao) > 120_000) return true;
-  return [snapshot.nacional.resultado, ...Object.values(snapshot.estados).map(s => s.resultado)].some(r => !r.totalizacao.totalizacaoFinal && r.totalizacao.andamento !== 'f' && now - Date.parse(r.atualizadoEm) > 120_000);
+  return [snapshot.nacional.resultado, ...Object.values(snapshot.estados).map(s => s.resultado)].some(r => !r.totalizacao.totalizacaoFinal && r.totalizacao.andamento !== 'f' && r.totalizacao.andamento !== 'n' && now - Date.parse(r.atualizadoEm) > 120_000);
 }
 export function snapshotUrl(manifestUrl: string, path: string) {
   if (!/^snapshots\/[a-zA-Z0-9_-]+\.json$/.test(path)) throw new Error('Caminho de snapshot inválido');

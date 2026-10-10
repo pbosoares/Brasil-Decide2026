@@ -1,0 +1,27 @@
+server:
+  port: 8080
+  error:
+    include-message: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+logging:
+  structured:
+    format:
+      console: logstash
+tse:
+  base-url: https://resultados.tse.jus.br
+  environment: oficial
+  election-date: 2026-10-25
+  round: 2
+  simulation: false
+  enabled: ${TSE_ENABLED:false}
+  timeout: 8s
+  stale-after: 2m
+  poll-delay-ms: ${TSE_POLL_DELAY_MS:30000}
+  snapshot-directory: ${SNAPSHOT_DIRECTORY:data}

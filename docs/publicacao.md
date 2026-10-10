@@ -1,6 +1,6 @@
 # Distribuição e deploy planejados
 
-Nada foi publicado ou contratado. O Docker/Compose desta fase serve para operação local e futura instalação controlada na VPS. A imagem ainda precisa de validação Docker no ambiente de deploy.
+Nada foi publicado ou contratado. O Docker/Compose desta fase serve para operação local e futura instalação controlada na VPS. A imagem foi construída e o container validado localmente em 10/10/2026; a instalação na VPS ainda precisa de validação no ambiente de deploy.
 
 ## Mecanismo escolhido para a próxima etapa
 

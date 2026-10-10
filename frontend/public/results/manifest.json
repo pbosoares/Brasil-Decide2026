@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "versao": null,
+  "arquivo": null,
+  "status": {
+    "estado": "AGUARDANDO_FONTE", "ultimaTentativa": null, "ultimaVerificacao": null,
+    "ultimaAtualizacao": null, "desatualizado": true, "versao": null, "fonte": "TSE",
+    "aviso": "Projeto independente, sem vínculo com a Justiça Eleitoral."
+  }
+}

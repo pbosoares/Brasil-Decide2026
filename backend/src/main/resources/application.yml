@@ -25,3 +25,13 @@ tse:
   stale-after: 2m
   poll-delay-ms: ${TSE_POLL_DELAY_MS:30000}
   snapshot-directory: ${SNAPSHOT_DIRECTORY:data}
+publication:
+  poll-delay-ms: 5000
+  r2:
+    enabled: ${R2_ENABLED:false}
+    account-id: ${R2_ACCOUNT_ID:}
+    bucket: ${R2_BUCKET:}
+    access-key-id: ${R2_ACCESS_KEY_ID:}
+    secret-access-key: ${R2_SECRET_ACCESS_KEY:}
+    prefix: ${R2_PREFIX:results/}
+    timeout: 10s

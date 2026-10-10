@@ -1,0 +1,9 @@
+[
+  {
+    "AllowedOrigins": ["https://ORIGEM-DO-FRONTEND.example"],
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedHeaders": ["Cache-Control", "Pragma"],
+    "ExposeHeaders": ["ETag", "Cache-Control", "Age", "CF-Cache-Status"],
+    "MaxAgeSeconds": 3600
+  }
+]

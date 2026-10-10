@@ -16,6 +16,11 @@ public class TseParser {
             throw new IllegalArgumentException("Campo obrigatório ausente: " + field);
         return value.asText();
     }
+    static String candidateSituation(JsonNode node, String field, boolean awaiting) {
+        JsonNode value = node.get(field);
+        if (awaiting && (value == null || value.isNull() || value.isTextual() && value.asText().isBlank())) return "";
+        return required(node, field);
+    }
     static JsonNode array(JsonNode node, String field) {
         JsonNode value = node.get(field);
         if (value == null || !value.isArray()) throw new IllegalArgumentException("Lista ausente: " + field);
@@ -59,6 +64,7 @@ public class TseParser {
                 || count(v, "vvc") != sum(votes.validos(), votes.anulados(), votes.anuladosSubJudice())
                 || votes.nulos() != sum(count(v, "vn"), votes.nulosTecnicos()))
             throw new IllegalArgumentException("Totais de votos inconsistentes");
+        boolean awaiting = progress.equals("n") && !finalTotal && counted == 0 && votes.total() == 0;
         List<Candidato> candidates = new ArrayList<>();
         int offices = 0;
         for (JsonNode office : array(root, "carg")) {
@@ -67,7 +73,7 @@ public class TseParser {
             for (JsonNode group : array(office, "agr")) for (JsonNode party : array(group, "par"))
                 for (JsonNode c : array(party, "cand")) candidates.add(new Candidato(required(c, "sqcand"),
                         required(c, "n"), required(c, "nmu"), required(party, "sg"), count(c, "vap"),
-                        percentage(c, "pvapn"), required(c, "dvt"), required(c, "st"), yes(c, "e")));
+                        percentage(c, "pvapn"), candidateSituation(c, "dvt", awaiting), candidateSituation(c, "st", awaiting), yes(c, "e")));
         }
         if (offices != 1 || candidates.isEmpty() || candidates.stream().map(Candidato::id).distinct().count() != candidates.size())
             throw new IllegalArgumentException("Candidatos ausentes ou duplicados");

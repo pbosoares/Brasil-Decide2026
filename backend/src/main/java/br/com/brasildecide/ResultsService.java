@@ -23,6 +23,8 @@ public class ResultsService {
     private volatile Instant attempted, verified, blockedUntil = Instant.EPOCH;
     private volatile String state = "AGUARDANDO_FONTE";
     private int failures;
+    private final java.util.concurrent.ExecutorService readers = java.util.concurrent.Executors.newFixedThreadPool(4);
+    @jakarta.annotation.PreDestroy void stopReaders() { readers.shutdownNow(); }
 
     public ResultsService(TseProperties p, TseClient client, TseParser parser, SnapshotStore store) {
         this.properties = p; this.client = client; this.parser = parser; this.store = store;
@@ -44,10 +46,26 @@ public class ResultsService {
                 configuration = TseConfiguration.discover(body, properties);
             }
             var election = configuration.election();
-            Resultado national = read("br", election);
+            // Four requests maximum at once, with a deadline for the entire batch.
+            // A stalled UF never exposes an incomplete new snapshot.
+            TseConfiguration source = configuration;
+            Map<String, java.util.concurrent.Future<Resultado>> requests = new LinkedHashMap<>();
+            long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(45);
+            Resultado national = read("br", election, source);
+            if (national.totalizacao().andamento().equals("n")) {
+                verified = Instant.now(); state = "AGUARDANDO_FONTE"; failures = 0;
+                return; // Official pre-election metadata is not a live vote snapshot.
+            }
             Map<String, ResultadoEstadual> states = new TreeMap<>();
-            // Sequential bounded collection avoids bursts and overlapping scheduler cycles.
-            for (String uf : UFS) states.put(uf.toUpperCase(Locale.ROOT), new ResultadoEstadual(uf.toUpperCase(Locale.ROOT), read(uf, election)));
+            try {
+                for (String uf : UFS)
+                    requests.put(uf, readers.submit(() -> read(uf, election, source)));
+                for (String uf : UFS) states.put(uf.toUpperCase(Locale.ROOT), new ResultadoEstadual(uf.toUpperCase(Locale.ROOT),
+                        requests.get(uf).get(Math.max(1, deadline - System.nanoTime()), java.util.concurrent.TimeUnit.NANOSECONDS)));
+            } catch (java.util.concurrent.ExecutionException ex) {
+                if (ex.getCause() instanceof RuntimeException cause) throw cause;
+                throw ex;
+            } finally { requests.values().forEach(request -> request.cancel(true)); }
             Snapshot previous = current.get();
             Snapshot next = new Snapshot(UUID.randomUUID().toString(), Instant.now(), election,
                     new ResultadoNacional(national), Map.copyOf(states));
@@ -79,8 +97,8 @@ public class ResultsService {
         }
     }
 
-    private Resultado read(String uf, Eleicao election) {
-        var body = client.fetch(configuration.resultUri(uf), j -> parser.parse(j, election, uf));
+    private Resultado read(String uf, Eleicao election, TseConfiguration source) {
+        var body = client.fetch(source.resultUri(uf), j -> parser.parse(j, election, uf));
         return parser.parse(body, election, uf);
     }
     private static boolean sameGenerations(Snapshot a, Snapshot b) {
@@ -107,6 +125,16 @@ public class ResultsService {
                 && stateVotes > national.votos().total()) throw new IllegalArgumentException("UFs excedem total BR final");
     }
     public Optional<Snapshot> snapshot() { return Optional.ofNullable(current.get()); }
+    /** Capture without locking the network collection thread. Skip a concurrent version swap. */
+    public Optional<PublicationView> publicationView() {
+        for (int i = 0; i < 3; i++) {
+            Snapshot snapshot = current.get();
+            var status = status();
+            if (snapshot == current.get() && Objects.equals(snapshot == null ? null : snapshot.versao(), status.versao()))
+                return Optional.of(new PublicationView(snapshot, status));
+        }
+        return Optional.empty();
+    }
     public Optional<Eleicao> election() {
         Snapshot s = current.get();
         return s != null ? Optional.of(s.eleicao()) : Optional.ofNullable(configuration).map(TseConfiguration::election);
@@ -118,7 +146,7 @@ public class ResultsService {
                 || verified.plus(properties.staleAfter()).isBefore(Instant.now());
         if (s != null && !s.nacional().resultado().totalizacao().totalizacaoFinal()) {
             stale |= updated.plus(properties.staleAfter()).isBefore(Instant.now());
-            stale |= s.estados().values().stream().anyMatch(r -> !r.resultado().totalizacao().andamento().equals("f")
+            stale |= s.estados().values().stream().anyMatch(r -> !r.resultado().totalizacao().andamento().equals("f") && !r.resultado().totalizacao().andamento().equals("n")
                     && r.resultado().atualizadoEm().plus(properties.staleAfter()).isBefore(Instant.now()));
         }
         return new StatusDaFonte(state, attempted, verified, updated, stale, s == null ? null : s.versao(),

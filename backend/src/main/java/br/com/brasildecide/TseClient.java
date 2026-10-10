@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +17,8 @@ import reactor.util.retry.Retry;
 @Component
 public class TseClient {
     private record Cached(JsonNode body, String etag, String modified) {}
-    private final Map<URI, Cached> cache = new HashMap<>();
+    private final Map<URI, Cached> cache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<URI, Object> locks = new java.util.concurrent.ConcurrentHashMap<>();
     private final WebClient client;
     private final ObjectMapper mapper;
     private final Duration timeout;
@@ -33,7 +33,12 @@ public class TseClient {
         this.client = client; this.mapper = mapper; this.timeout = timeout;
     }
     /** Cache validators advance only after semantic validation. A failed file cannot poison the cache. */
-    public synchronized JsonNode fetch(URI uri, Consumer<JsonNode> validate) {
+    public JsonNode fetch(URI uri, Consumer<JsonNode> validate) {
+        synchronized (locks.computeIfAbsent(uri, ignored -> new Object())) {
+            return fetchLocked(uri, validate);
+        }
+    }
+    private JsonNode fetchLocked(URI uri, Consumer<JsonNode> validate) {
         Cached old = cache.get(uri);
         var response = client.get().uri(uri).headers(headers -> {
             if (old != null && old.etag() != null) headers.setIfNoneMatch(old.etag());

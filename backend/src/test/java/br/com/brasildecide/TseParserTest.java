@@ -16,6 +16,17 @@ class TseParserTest {
     JsonNode fixture(String name) throws Exception {
         try (var stream = getClass().getResourceAsStream("/fixtures/" + name)) { return mapper.readTree(stream); }
     }
+    @Test void officialPreElectionMetadataAllowsPendingSituationButNoInventedResult() throws Exception {
+        var election = new Eleicao("6258", "3221", "ele2026", "Segundo turno",
+                new Turno(2, LocalDate.of(2026, 10, 25)), false);
+        var root = (ObjectNode) fixture("br-2026-t2-waiting.json");
+        var result = parser.parse(root, election, "br");
+        assertEquals("n", result.totalizacao().andamento());
+        assertEquals(0, result.votos().total()); assertNull(result.liderId());
+        assertEquals(2, result.candidatos().size());
+        root.put("and", "p");
+        assertThrows(IllegalArgumentException.class, () -> parser.parse(root, election, "br"));
+    }
     @Test void parsesOfficialNationalHistoricalFile() throws Exception {
         var result = parser.parse(fixture("br-2026-t1.json"), historical, "br");
         assertEquals(125275835L, result.votos().total());

@@ -25,4 +25,6 @@ public final class Models {
             ResultadoNacional nacional, Map<String, ResultadoEstadual> estados) {}
     public record StatusDaFonte(String estado, Instant ultimaTentativa, Instant ultimaVerificacao,
             Instant ultimaAtualizacao, boolean desatualizado, String versao, String fonte, String aviso) {}
+    public record PublicManifest(int schemaVersion, String versao, String arquivo, StatusDaFonte status) {}
+    public record PublicationView(Snapshot snapshot, StatusDaFonte status) {}
 }

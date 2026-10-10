@@ -55,4 +55,29 @@ class ResultsServiceTest {
         assertThrows(IllegalArgumentException.class, () -> ResultsService.validateSnapshot(new Snapshot("test", Instant.now(),
                 previous.eleicao(), previous.nacional(), Map.of())));
     }
+    @Test void oneFailedUfNeverPublishesAPartialNewSnapshot() throws Exception {
+        var client = mock(TseClient.class); var parser = mock(TseParser.class);
+        var store = mock(SnapshotStore.class); Snapshot previous = snapshot();
+        when(store.load()).thenReturn(Optional.of(previous));
+        var mapper = new ObjectMapper();
+        var config = mapper.readTree(getClass().getResourceAsStream("/fixtures/ele-c.json"));
+        when(client.fetch(any(), any())).thenAnswer(call -> call.getArgument(0).toString().endsWith("ele-c.json") ? config : mapper.createObjectNode());
+        when(parser.parse(any(), any(), anyString())).thenAnswer(call -> {
+            String uf = call.getArgument(2);
+            if (uf.equals("sp")) throw new IllegalArgumentException("UF incompleta");
+            if (uf.equals("br")) {
+                var n = previous.nacional().resultado();
+                return new Resultado(n.uf(), n.geracao(), n.atualizadoEm(), n.divulgacaoPermitida(), n.simulacao(), n.candidatos(), n.votos(),
+                        new Totalizacao(0, 0, BigDecimal.ZERO, "p", false), n.liderId(), n.diferencaVotos());
+            }
+            return previous.estados().get(uf.toUpperCase()).resultado();
+        });
+        var service = new ResultsService(ConfigurationTest.properties(directory), client, parser, store);
+        try {
+            service.collect();
+            assertEquals(previous, service.snapshot().orElseThrow());
+            assertEquals("INDISPONIVEL", service.status().estado());
+            verify(store, never()).save(any());
+        } finally { service.stopReaders(); }
+    }
 }

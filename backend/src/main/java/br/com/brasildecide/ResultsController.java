@@ -25,4 +25,15 @@ public class ResultsController {
         return response(snapshot().estados().get(normalized.toUpperCase(Locale.ROOT)));
     }
     @GetMapping("/results/status") public ResponseEntity<StatusDaFonte> status() { return response(service.status()); }
+    @GetMapping("/results/manifest.json") public ResponseEntity<PublicManifest> manifest() {
+        var status = service.status();
+        return response(new PublicManifest(1, status.versao(), status.versao() == null ? null : "snapshots/" + status.versao() + ".json", status));
+    }
+    // Local bridge: if collection advances between the two requests, retry the manifest.
+    // Production CDN publication still uploads an immutable snapshot before the manifest.
+    @GetMapping("/results/snapshots/{version}.json") public ResponseEntity<Snapshot> version(@PathVariable String version) {
+        var snapshot = snapshot();
+        if (!snapshot.versao().equals(version)) throw new org.springframework.web.server.ResponseStatusException(HttpStatus.CONFLICT);
+        return response(snapshot);
+    }
 }

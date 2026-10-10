@@ -11,6 +11,31 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 class TseClientTest {
+    @Test void distinctFilesCanProgressWhileAnotherRequestIsWaiting() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        var httpThreads = java.util.concurrent.Executors.newFixedThreadPool(2);
+        var callers = java.util.concurrent.Executors.newFixedThreadPool(2);
+        var both = new java.util.concurrent.CountDownLatch(2);
+        server.setExecutor(httpThreads);
+        server.createContext("/", exchange -> {
+            both.countDown();
+            boolean concurrent;
+            try { concurrent = both.await(3, java.util.concurrent.TimeUnit.SECONDS); }
+            catch (InterruptedException ex) { Thread.currentThread().interrupt(); concurrent = false; }
+            byte[] body = ("{\"concurrent\":" + concurrent + "}").getBytes();
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body); exchange.close();
+        });
+        server.start();
+        try {
+            var client = new TseClient(WebClient.create(), new ObjectMapper(), Duration.ofSeconds(5));
+            String base = "http://127.0.0.1:" + server.getAddress().getPort();
+            var first = callers.submit(() -> client.fetch(URI.create(base + "/first"), j -> {}));
+            var second = callers.submit(() -> client.fetch(URI.create(base + "/second"), j -> {}));
+            assertTrue(first.get(8, java.util.concurrent.TimeUnit.SECONDS).path("concurrent").asBoolean());
+            assertTrue(second.get(8, java.util.concurrent.TimeUnit.SECONDS).path("concurrent").asBoolean());
+        } finally { server.stop(0); callers.shutdownNow(); httpThreads.shutdownNow(); }
+    }
     @Test void conditionalRequestsAnd304ReuseValidatedBody() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         AtomicInteger calls = new AtomicInteger();

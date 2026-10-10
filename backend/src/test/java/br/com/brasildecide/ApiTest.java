@@ -20,6 +20,12 @@ class ApiTest {
         mvc.perform(get("/api/v1/results/states/ZZ")).andExpect(status().isNotFound());
         mvc.perform(get("/api/v1/results/status")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.desatualizado").value(true)).andExpect(jsonPath("$.fonte").value("TSE"));
+        mvc.perform(get("/api/v1/results/manifest.json")).andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(jsonPath("$.schemaVersion").value(1))
+                .andExpect(jsonPath("$.versao").isEmpty()).andExpect(jsonPath("$.arquivo").isEmpty())
+                .andExpect(jsonPath("$.status.estado").value("AGUARDANDO_FONTE"));
+        mvc.perform(get("/api/v1/results/snapshots/missing.json")).andExpect(status().isServiceUnavailable());
         mvc.perform(get("/actuator/health")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
         mvc.perform(get("/actuator/env")).andExpect(status().isNotFound());
     }

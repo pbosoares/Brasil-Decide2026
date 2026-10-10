@@ -1,0 +1,6 @@
+* text=auto
+backend/mvnw text eol=lf
+backend/mvnw.cmd text eol=crlf
+# Preserve official downloads byte for byte, including original whitespace.
+backend/src/test/resources/fixtures/*.json -text whitespace=-blank-at-eol
+docs/tse/ele-c.json -text whitespace=-blank-at-eol

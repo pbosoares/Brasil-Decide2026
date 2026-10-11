@@ -12,7 +12,7 @@ O workflow `.github/workflows/ci.yml` valida pull requests e pushes. O deploy au
 
 ## Configuração de produção
 
-Criar o environment GitHub `production`, limitado à branch `main`. Proteger `main` contra force push e configurar os checks `frontend`, `backend` e `images` como obrigatórios para merge; se a conta/plano não permitir, essa proteção permanece pendente.
+O environment GitHub `production` está limitado à branch `main`. Proteger `main` contra force push e configurar os checks `Testes do frontend`, `Testes do backend` e `Imagens de produção` como obrigatórios para merge; se a conta/plano não permitir, essa proteção permanece pendente.
 
 Secrets do environment:
 

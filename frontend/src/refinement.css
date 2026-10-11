@@ -46,6 +46,7 @@ nav a,.independent{font-size:13px}
 .state-badge{width:48px;height:48px;font-size:16px}
 .state-selector{width:36px;height:44px;display:grid;place-items:center}
 .state-selector select{height:44px}
+.state-selector select,.state-selector option{color-scheme:dark;color:#e8edf2;background-color:#121b26}
 .state-total{padding:24px 0 20px;border-bottom:1px solid var(--line)}
 .state-total>span{font-size:13px;color:var(--muted)}
 .state-total strong{font-size:38px;line-height:1.2;display:block;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.035em;margin:10px 0 6px}

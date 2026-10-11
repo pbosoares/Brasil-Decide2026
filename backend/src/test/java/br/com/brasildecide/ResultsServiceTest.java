@@ -21,10 +21,11 @@ class ResultsServiceTest {
                 new Turno(2, LocalDate.of(2026, 10, 25)), false);
         var total = new Totalizacao(0, 0, BigDecimal.ZERO, "n", false);
         var votes = new Votos(0, 0, 0, 0, 0, 0, 0, 0);
-        var national = new Resultado("BR", "1", Instant.now(), false, false, List.of(), votes, total, null, 0);
+        var candidates = List.of(new Candidato("test-a", "01", "SIMULAÇÃO A", "TESTE", 0, BigDecimal.ZERO, "", "", false));
+        var national = new Resultado("BR", "1", Instant.now(), false, false, candidates, votes, total, null, 0);
         Map<String, ResultadoEstadual> states = new HashMap<>();
         for (String uf : ResultsService.UFS) states.put(uf.toUpperCase(), new ResultadoEstadual(uf.toUpperCase(),
-                new Resultado(uf.toUpperCase(), "1", Instant.now(), false, false, List.of(), votes, total, null, 0)));
+                new Resultado(uf.toUpperCase(), "1", Instant.now(), false, false, candidates, votes, total, null, 0)));
         return new Snapshot("test", Instant.now(), election, new ResultadoNacional(national), states);
     }
     @Test void atomicStoreRoundTripAndRestore() throws Exception {
@@ -55,6 +56,20 @@ class ResultsServiceTest {
         assertThrows(IllegalArgumentException.class, () -> ResultsService.validateSnapshot(new Snapshot("test", Instant.now(),
                 previous.eleicao(), previous.nacional(), Map.of())));
     }
+    @Test void corruptDiskSnapshotIsNeverExposedAsResults() throws Exception {
+        var store = mock(SnapshotStore.class);
+        var previous = snapshot(); var n = previous.nacional().resultado();
+        var invalid = new Resultado(n.uf(), n.geracao(), n.atualizadoEm(), n.divulgacaoPermitida(), n.simulacao(),
+                n.candidatos(), new Votos(-1, 0, 0, 0, 0, 0, 0, 0), n.totalizacao(), n.liderId(), n.diferencaVotos());
+        when(store.load()).thenReturn(Optional.of(new Snapshot(previous.versao(), previous.coletadoEm(),
+                previous.eleicao(), new ResultadoNacional(invalid), previous.estados())));
+        var service = new ResultsService(ConfigurationTest.properties(directory), mock(TseClient.class), new TseParser(), store);
+        try {
+            assertTrue(service.snapshot().isEmpty());
+            assertEquals("AGUARDANDO_FONTE", service.status().estado());
+            assertTrue(service.status().desatualizado());
+        } finally { service.stopReaders(); }
+    }
     @Test void oneFailedUfNeverPublishesAPartialNewSnapshot() throws Exception {
         var client = mock(TseClient.class); var parser = mock(TseParser.class);
         var store = mock(SnapshotStore.class); Snapshot previous = snapshot();
@@ -79,5 +94,35 @@ class ResultsServiceTest {
             assertEquals("INDISPONIVEL", service.status().estado());
             verify(store, never()).save(any());
         } finally { service.stopReaders(); }
+    }
+    @Test void completeCollectionAdvancesOnlyAfterDiskSave() throws Exception {
+        for (boolean failSave : List.of(false, true)) {
+            var client = mock(TseClient.class); var parser = mock(TseParser.class); var store = mock(SnapshotStore.class);
+            Snapshot previous = snapshot(); when(store.load()).thenReturn(Optional.of(previous));
+            var mapper = new ObjectMapper();
+            var config = mapper.readTree(getClass().getResourceAsStream("/fixtures/ele-c.json"));
+            when(client.fetch(any(), any())).thenAnswer(call -> call.getArgument(0).toString().endsWith("ele-c.json") ? config : mapper.createObjectNode());
+            when(parser.parse(any(), any(), anyString())).thenAnswer(call -> {
+                String uf = call.getArgument(2);
+                var r = uf.equals("br") ? previous.nacional().resultado() : previous.estados().get(uf.toUpperCase()).resultado();
+                return new Resultado(r.uf(), "2", r.atualizadoEm().plusSeconds(1), r.divulgacaoPermitida(), r.simulacao(),
+                        r.candidatos(), r.votos(), new Totalizacao(0, 0, BigDecimal.ZERO, "p", false), r.liderId(), r.diferencaVotos());
+            });
+            if (failSave) doThrow(new java.io.IOException("Disk full")).when(store).save(any());
+            var service = new ResultsService(ConfigurationTest.properties(directory), client, parser, store);
+            try {
+                service.collect(); verify(store).save(any());
+                if (failSave) {
+                    assertEquals(previous, service.snapshot().orElseThrow());
+                    assertEquals("INDISPONIVEL", service.status().estado());
+                } else {
+                    var next = service.snapshot().orElseThrow();
+                    assertNotEquals(previous.versao(), next.versao());
+                    assertEquals(27, next.estados().size());
+                    assertEquals("DISPONIVEL", service.status().estado());
+                    SnapshotPublication.validate(next);
+                }
+            } finally { service.stopReaders(); }
+        }
     }
 }

@@ -23,4 +23,15 @@ class VisitsControllerTest {
         assertThrows(ResponseStatusException.class, () -> counter.register(ORIGIN, new VisitsController.Visit("bad")));
         assertEquals(0, counter.count().getBody().visitas());
     }
+    @Test void corruptCounterDoesNotPreventStartupOrEraseHistory() throws Exception {
+        for (String content : new String[]{"corrupt", "-1", "9223372036854775808"}) {
+            var file = directory.resolve("visits.txt");
+            java.nio.file.Files.writeString(file, content);
+            var counter = new VisitsController(directory.toString(), ORIGIN);
+            assertEquals(503, assertThrows(ResponseStatusException.class, counter::count).getStatusCode().value());
+            assertEquals(503, assertThrows(ResponseStatusException.class, () -> counter.register(ORIGIN,
+                    new VisitsController.Visit(UUID.randomUUID().toString()))).getStatusCode().value());
+            assertEquals(content, java.nio.file.Files.readString(file));
+        }
+    }
 }

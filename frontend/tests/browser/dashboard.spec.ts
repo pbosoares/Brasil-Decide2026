@@ -6,6 +6,35 @@ test.beforeEach(async ({page}) => {
   await page.route('**/results/manifest.json', route => route.fulfill({json:waitingManifest}));
 });
 
+test('seleção estadual usa percentuais da UF e preserva o placar nacional', async ({page}) => {
+  const snapshot = simulatedSnapshot();
+  const ma = snapshot.estados.MA.resultado;
+  ma.candidatos[0].votos = 25; ma.candidatos[0].percentualOficial = 25;
+  ma.candidatos[1].votos = 75; ma.candidatos[1].percentualOficial = 75;
+  ma.liderId = 'test-b'; ma.diferencaVotos = 50;
+  await page.route('**/results/manifest.json', route => route.fulfill({json:simulatedManifest()}));
+  await page.route('**/results/snapshots/test-version.json', route => route.fulfill({json:snapshot}));
+  await page.goto('/');
+  await page.getByRole('button',{name:'Selecionar Maranhão',exact:true}).click();
+  await expect(page.locator('.state-panel .local-score b')).toHaveText(['25,00%','75,00%']);
+  await expect(page.locator('#placar .candidate-score > strong')).toHaveText(['60,00%dos votos válidos*','40,00%dos votos válidos*']);
+  await page.getByLabel('Selecionar estado').selectOption('SP');
+  await expect(page.locator('.state-panel .local-score b')).toHaveText(['60,00%','40,00%']);
+});
+
+test('perda de conexão preserva votos e reconexão recupera as atualizações', async ({page,context}) => {
+  await page.route('**/results/manifest.json', route => route.fulfill({json:simulatedManifest()}));
+  await page.route('**/results/snapshots/test-version.json', route => route.fulfill({json:simulatedSnapshot()}));
+  await page.goto('/');
+  await expect(page.getByText('Apuração em andamento',{exact:true})).toBeVisible();
+  await context.setOffline(true);
+  await expect(page.getByText('Exibindo o último resultado válido')).toBeVisible();
+  await expect(page.locator('#placar .candidate-score > strong').first()).toContainText('60,00%');
+  await context.setOffline(false);
+  await expect(page.getByText('Apuração em andamento',{exact:true})).toBeVisible();
+  await expect(page.getByText('Exibindo o último resultado válido')).toHaveCount(0);
+});
+
 test('dashboard continua disponível sem APIs recentes de ordenação e contador', async ({page}) => {
   await page.addInitScript(() => {
     Object.defineProperty(Array.prototype, 'toSorted', {value: undefined, configurable: true});

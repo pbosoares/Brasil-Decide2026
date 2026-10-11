@@ -31,7 +31,7 @@ public class ResultsService {
         try {
             store.load().filter(s -> s.eleicao() != null && s.eleicao().turno().numero() == p.round()
                     && s.eleicao().turno().data().equals(p.electionDate()) && s.eleicao().simulacao() == p.simulation())
-                    .ifPresent(s -> { validateSnapshot(s); current.set(s); state = "RECUPERADO_DO_DISCO"; });
+                    .ifPresent(s -> { SnapshotPublication.validate(s); current.set(s); state = "RECUPERADO_DO_DISCO"; });
         } catch (Exception e) { log.atWarn().addKeyValue("event", "snapshot_restore_failed").log("Snapshot local não pôde ser recuperado"); }
     }
 
@@ -69,7 +69,7 @@ public class ResultsService {
             Snapshot previous = current.get();
             Snapshot next = new Snapshot(UUID.randomUUID().toString(), Instant.now(), election,
                     new ResultadoNacional(national), Map.copyOf(states));
-            validateSnapshot(next);
+            SnapshotPublication.validate(next);
             if (previous != null) {
                 if (national.atualizadoEm().isBefore(previous.nacional().resultado().atualizadoEm()))
                     throw new IllegalArgumentException("Arquivo nacional regrediu no tempo");
@@ -115,7 +115,7 @@ public class ResultsService {
         long stateVotes = 0;
         for (String uf : UFS) {
             var state = s.estados().get(uf.toUpperCase(Locale.ROOT));
-            if (state == null || !state.resultado().uf().equalsIgnoreCase(uf)) throw new IllegalArgumentException("UF ausente");
+            if (state == null || !state.uf().equalsIgnoreCase(uf) || !state.resultado().uf().equalsIgnoreCase(uf)) throw new IllegalArgumentException("UF ausente");
             if (state.resultado().simulacao() != s.eleicao().simulacao()) throw new IllegalArgumentException("Fases diferentes");
             stateVotes = Math.addExact(stateVotes, state.resultado().votos().total());
         }

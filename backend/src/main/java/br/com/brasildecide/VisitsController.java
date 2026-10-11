@@ -10,31 +10,40 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class VisitsController {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VisitsController.class);
     private final Path file;
     private final String origin;
     private long total;
+    private boolean available = true;
     private final LinkedHashMap<String, Boolean> recent = new LinkedHashMap<>();
     public VisitsController(@Value("${tse.snapshot-directory:data}") String directory,
                             @Value("${visits.origin:https://brasildecide.pablo-soares.tech}") String origin) throws IOException {
         file = Path.of(directory).resolve("visits.txt");
         this.origin = origin;
-        if (Files.exists(file)) {
+        try {
+            // Missing is a new counter; unreadable or corrupt is not a reason to erase history.
+            if (Files.notExists(file)) return;
             total = Long.parseLong(Files.readString(file).trim());
             if (total < 0) throw new IOException("Invalid visits total");
+        } catch (IOException | NumberFormatException ex) {
+            available = false;
+            log.warn("Contador de visitas indisponível; apuração continua ativa e arquivo preservado");
         }
     }
     public record Count(long visitas) {}
     public record Visit(String id) {}
     @GetMapping("/api/v1/visits")
     public synchronized ResponseEntity<Count> count() {
+        if (!available) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(new Count(total));
     }
     @PostMapping("/api/v1/visits")
     public synchronized ResponseEntity<Count> register(@RequestHeader(value="Origin", required=false) String requestOrigin,
                                                        @RequestBody Visit visit) {
         if (!origin.equals(requestOrigin)) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        if (visit.id() == null || !visit.id().matches("[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}"))
+        if (visit == null || visit.id() == null || !visit.id().matches("[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        if (!available) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
         if (!recent.containsKey(visit.id())) {
             try {
                 long next = Math.addExact(total, 1);

@@ -30,7 +30,7 @@ No Windows com Chrome instalado, pode usar `$env:PLAYWRIGHT_CHANNEL='chrome'` an
 - Mapa SVG real das 27 UFs, seleção por clique/teclado, tooltip, legenda por candidatura, cor neutra para empate/sem dados e contagem de lideranças. Cores dependem de número/ID estáveis, não de posição na apuração.
 - Painel estadual, seletor acessível e histórico somente de atualizações efetivamente recebidas nesta sessão. Sem curva inventada; o gráfico é carregado sob demanda após duas gerações distintas.
 - Tabela com busca sem distinção de acentos, ordenação por todas as colunas e seleção de estado. Atalho `/` foca a busca.
-- Polling sequencial com intervalo aleatório de 20–30 segundos, timeout, checagem de versões e validação Zod. Uma falha ou documento inválido preserva o último snapshot válido em memória e, quando permitido, em localStorage. Dados antigos são sinalizados mesmo quando o arquivo em cache responde.
+- Polling sequencial com intervalo de 5–6 segundos na página visível, 30–31 segundos em segundo plano e tentativas progressivas após falha, timeout, checagem de versões e validação Zod. Uma falha ou documento inválido preserva o último snapshot válido em memória e, quando permitido, em localStorage. Dados antigos são sinalizados mesmo quando o arquivo em cache responde.
 - Aviso independente, fonte TSE, horário de Brasília, distinção entre liderança e totalização final. Nenhuma eleição é declarada com base nos cálculos de liderança.
 
 ## Dados públicos

@@ -6,11 +6,34 @@ test.beforeEach(async ({page}) => {
   await page.route('**/results/manifest.json', route => route.fulfill({json:waitingManifest}));
 });
 
+test('dashboard continua disponível sem APIs recentes de ordenação e contador', async ({page}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(Array.prototype, 'toSorted', {value: undefined, configurable: true});
+    Object.defineProperty(AbortSignal, 'timeout', {value: undefined, configurable: true});
+  });
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.getByRole('heading', {name:'Presidência da República'})).toBeVisible();
+  await expect(page.getByRole('img', {name:'Bandeira do Brasil'})).toBeVisible();
+  await expect(page.locator('tbody tr')).toHaveCount(27);
+  await page.getByRole('columnheader', {name:'Estado'}).getByRole('button').click();
+  await expect(page.locator('tbody tr').first()).toContainText('Tocantins');
+  expect(errors).toEqual([]);
+});
+
 test('espera sem votos fictícios; mapa, busca e ordenação funcionam', async ({page}) => {
   const errors:string[]=[]; page.on('pageerror', e=>errors.push(e.message));
   const requests:string[]=[]; page.on('request', request=>requests.push(request.url()));
   await page.goto('/');
   await expect(page.getByRole('heading',{name:'O Brasil, voto a voto.'})).toBeVisible();
+  const flag = page.getByRole('img',{name:'Bandeira do Brasil'});
+  await expect(flag).toBeVisible();
+  await expect.poll(() => flag.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  await page.getByRole('link',{name:'Como os dados chegam'}).click();
+  await expect(page).toHaveURL(/#sobre-dados$/);
+  await page.getByRole('link',{name:'Explorar os estados'}).click();
+  await expect(page).toHaveURL(/#estados$/);
   await expect(page.getByText('Fonte ainda não conectada')).toBeVisible();
   await expect(page.getByRole('heading',{name:'Lula',exact:true})).toBeVisible();
   await expect(page.getByRole('heading',{name:'Flavio Bolsonaro',exact:true})).toBeVisible();

@@ -6,7 +6,7 @@ Aplicação independente para acompanhar **somente Presidente da República, seg
 
 Monorepo com backend Java 21, Spring Boot 3.5, Maven e dashboard React/Vite/TypeScript implementado na Fase 2. Sem banco de dados obrigatório, nomes fixos de candidatos ou votos demonstrativos em produção.
 
-Implementado: descoberta EA11, parser EA20 presidencial por abrangência, coleta sequencial configurável, validação de identidade e totais, ETag/Last-Modified/304, timeout e retry com backoff para erros transitórios, circuito com espera após falhas, último snapshot válido, persistência com rename atômico, status de atraso, API REST e testes com arquivos oficiais. Coletas completas trocam a referência em memória somente após a gravação no disco. Arquivos que regredirem em data/hora são rejeitados; correções de votos em gerações novas são permitidas.
+Implementado: descoberta EA11, parser EA20 presidencial por abrangência, coleta configurável com até quatro consultas simultâneas às UFs, validação de identidade e totais, ETag/Last-Modified/304, timeout e retry com backoff para erros transitórios, circuito com espera após falhas, último snapshot válido, persistência com rename atômico, status de atraso, API REST e testes com arquivos oficiais. Coletas completas trocam a referência em memória somente após a gravação no disco. Arquivos que regredirem em data/hora são rejeitados; correções de votos em gerações novas são permitidas.
 
 **Coleta desativada por padrão.** Ative `TSE_ENABLED=true` quando quiser consultar a fonte. Sem snapshot ou eleição confirmada, a API retorna 503, nunca votos fictícios. Se uma UF falhar, toda a atualização é descartada; isso preserva uma versão completa, mas pode atrasar a atualização nacional. Arquivos distintos não são transacionais no TSE; `atualizadoEm` e `geracao` pertencem a cada abrangência.
 
@@ -65,7 +65,7 @@ EA11, EA15, EA20 e instruções de download foram consultados. O link do PDF EA1
 
 ## Fase 2 — dashboard local
 
-Dashboard React responsivo em português, tema escuro, placar presidencial, estatísticas, mapa SVG do IBGE com 27 UFs, painel estadual, tabela com busca/ordenação e histórico de atualizações recebidas. O leitor de snapshots públicos valida dados, versões, turno e fase, com polling de 20–30 segundos e fallback para o último resultado aceito. Não consulta a API da VPS no navegador.
+Dashboard React responsivo em português, tema escuro, placar presidencial, estatísticas, mapa SVG do IBGE com 27 UFs, painel estadual, tabela com busca/ordenação e histórico de atualizações recebidas. O leitor de snapshots públicos valida dados, versões, turno e fase, com polling de 5–6 segundos na página visível e fallback para o último resultado aceito. Em produção, consome snapshots publicados; na prévia local, o Vite encaminha o manifest e os snapshots para o backend local.
 
 ```sh
 cd frontend
@@ -77,4 +77,4 @@ Prévia em http://127.0.0.1:5173. Sem fonte conectada, apresenta Aguardando apur
 
 ## Próxima fase
 
-Implementar o publicador R2 conforme o contrato de manifest, revisar a pendência do EA14 e conectar a coleta oficial de segundo turno. Depois validar cache e medir carga em ambiente autorizado. Não realizar deploy ou contratar serviços sem autorização.
+Publicador R2 implementado com envio confirmado de snapshots, manifest condicional, status periódico e recuperação após reinício. Configuração externa ainda pendente: criar bucket, credencial limitada, domínio de dados e regras de cache/CORS conforme [publicação](docs/publicacao.md). Revisar a pendência do EA14. Depois validar cache e medir carga em ambiente autorizado. Não realizar deploy ou contratar serviços sem autorização.

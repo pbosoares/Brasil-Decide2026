@@ -14,6 +14,14 @@ Verificações: Brasil HTTPS HTTP 200 com `ssl_verify_result=0`; HTTP redirecion
 
 ## Infraestrutura identificada
 
+### Atualização visual do Paper — 10/10/2026
+
+Publicado o novo topo com bandeira do Brasil, links para estados e fonte, etapas do acompanhamento e layout responsivo. Transferidos somente `frontend/src/App.tsx`, `frontend/src/styles.css` e `frontend/public/brazil-flag.svg`, com SHA-256 do pacote `cc24446ef1332b2f6de91c29ed940100f9bc9208f074354099f76d34665da632` confirmado. Backup anterior em `/opt/brasil-decide-2026/deploy/backups/frontend-before-paper-20261010.tar.gz` na VPS. Reconstruído somente o serviço frontend com `docker compose -f deploy/compose.vps.yml up -d --build --no-deps --wait frontend`; contêiner saudável. Backend e proxy não foram alterados.
+
+Domínio público verificado no navegador em 1440 px e 390 px: bandeira carregada e sem overflow horizontal. Compilação local e seis testes de dados passaram; os oito testes de navegador passaram, com os dois últimos repetidos após uma falha de sincronização/remoção antecipada da configuração temporária.
+
+Correção de compatibilidade: substituído `toSorted` por `sort` no array novo retornado por `filter`; falhas síncronas nas APIs do contador opcional são capturadas antes de afetar a renderização. Teste de navegador desativa `Array.prototype.toSorted` e `AbortSignal.timeout` e verifica painel, bandeira, 27 linhas e ordenação sem erros. Passaram esse teste, o fluxo completo do painel, o teste de overflow, o build e seis testes de dados. Pacote SHA-256 `8dd32decc07b147e7b1bbe7ab444b10e2c080df0c33541233244b58a8cdbf479`; backup na VPS em `deploy/backups/frontend-before-chrome-fix-20261010.tar.gz`.
+
 Inspeção do hPanel em 10/10/2026: VPS Ubuntu 26.04 LTS, KVM 1, 1 CPU / 4 GB RAM, IP `179.199.155.163`. Projeto Docker `ecommerce`, três contêineres `db`, `api` e `web`. O serviço web ocupa 80/TCP, 443/TCP e 443/UDP, usa volumes `caddy_data`, `caddy_config` e rede `ecommerce_web`. Esses volumes indicam Caddy; confirmar seu Dockerfile/Caddyfile antes de alterar o roteamento. O painel mostrou um aviso de YAML não processado; nenhuma edição foi salva.
 
 Site proposto: `brasildecide.pablo-soares.tech`. Os dados continuam reservados para `dados.pablo-soares.tech` no R2, com ativação combinada para 24/10/2026.

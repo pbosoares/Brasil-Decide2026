@@ -1,0 +1,125 @@
+/* Continuation of the existing Paper direction: state results take priority. */
+:root{font-family:"Segoe UI",system-ui,sans-serif;--text:#f5f7fa}
+.election-hero{position:relative;isolation:isolate;overflow:hidden}
+.topbar-inner{height:80px}
+.topbar{border-color:var(--line)}
+nav a,.independent{font-size:13px}
+.election-hero{padding:48px 0 36px;gap:48px}
+.election-hero h1{font-size:clamp(44px,5vw,68px);line-height:1.05;letter-spacing:-.055em;margin:20px 0}
+.election-hero p{font-size:17px;line-height:28px;max-width:530px}
+.hero-national{max-width:270px;gap:20px}
+.hero-actions{margin-top:24px}
+.hero-actions a{padding:13px 20px;min-height:46px}
+.pill{font-size:11px;padding:6px 9px}
+.live-status,.live-box small{font-size:12px}
+.notice{background:var(--panel);padding:20px 24px;margin-bottom:0;border-radius:12px}
+.notice strong{font-size:16px;line-height:24px}
+.notice p{font-size:13px;line-height:21px;max-width:770px}
+.refresh-button{min-height:44px;padding:10px 14px;font-size:13px}
+.metrics{gap:0;border-bottom:1px solid var(--line);margin:24px 0 36px;padding-bottom:24px}
+.metric{background:transparent;border:0;border-right:1px solid var(--line);border-radius:0;padding:8px 24px}
+.metric:first-child{padding-left:0}.metric:last-child{border-right:0}
+.metric-head{font-size:13px;color:var(--muted)}
+.metric-head svg{color:var(--lime);flex-shrink:0}
+.metric>strong{font-size:34px;font-weight:600;margin:12px 0 8px}
+.metric>small{font-size:12px;line-height:19px}
+.geography{gap:24px;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.section-heading{padding:28px;gap:16px}
+.section-heading h2{font-size:27px;line-height:1.2;font-weight:600;letter-spacing:-.035em}
+.eyebrow{font-size:11px;letter-spacing:.1em;margin-bottom:9px}
+.tag{font-size:12px;padding:7px 10px;flex-shrink:0}
+.map-panel .tag{display:none}
+.map-topline{padding:0 28px;font-size:13px;line-height:20px;flex-wrap:wrap}
+.map-topline small{font-size:12px}
+.map-wrap{max-width:620px;padding:12px 18px 0}
+.brazil-map{max-height:470px}
+.uf-label{fill:#b2c0cd;font-size:12px}
+.uf-label.with-votes{fill:#14212c}
+.map-legend{font-size:13px;padding:12px 28px 24px;gap:14px 24px}
+.map-legend b{font-size:12px}
+.map-caption{padding:15px 28px;font-size:12px}
+.map-tooltip{background:#101a24;border-color:#425464;padding:16px;max-width:280px}
+.map-tooltip strong{font-size:14px}.map-tooltip strong span,.map-tooltip small,.map-tooltip p,.map-tooltip b{font-size:12px}
+.state-panel{padding:28px;min-width:0}
+.state-heading h2{font-size:27px;font-weight:600;letter-spacing:-.035em}
+.state-heading .eyebrow{font-size:10px;line-height:16px}
+.state-badge{width:48px;height:48px;font-size:16px}
+.state-selector{width:36px;height:44px;display:grid;place-items:center}
+.state-selector select{height:44px}
+.state-total{padding:24px 0 20px;border-bottom:1px solid var(--line)}
+.state-total>span{font-size:13px;color:var(--muted)}
+.state-total strong{font-size:38px;line-height:1.2;display:block;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.035em;margin:10px 0 6px}
+.state-total small{font-size:12px;color:var(--muted)}
+.state-progress{margin:22px 0}
+.state-progress>div:first-child{font-size:13px}.state-progress>small{font-size:12px;line-height:18px}
+.local-candidate{gap:12px;padding:18px 0}.local-avatar{width:40px;height:40px}
+.local-candidate strong{font-size:14px}.local-candidate small{font-size:12px}.local-score b{font-size:20px}
+.local-score{min-width:80px;flex-shrink:0}
+.state-difference{font-size:13px;margin:20px 0 24px}.state-difference strong{font-size:21px}
+.history h3{font-size:13px}.history-empty small,.history>small{font-size:12px;line-height:19px}
+.history-lines{display:none}
+.history-empty{background:none;border:1px dashed var(--line);padding:14px;height:auto;min-height:82px}
+.state-time{font-size:12px;line-height:18px;flex-wrap:wrap}.state-time>span{font-size:11px}
+.scoreboard{margin-top:36px}
+.candidates{padding:0 28px 28px;gap:24px}
+.candidate-card,.candidate-card:last-child{background:transparent;border:1px solid var(--line);border-top:3px solid var(--candidate-color);padding:24px}
+.candidate-card h3{font-size:24px}.candidate-card>p{font-size:13px;line-height:21px}
+.candidate-number{font-size:12px;letter-spacing:.04em}.candidate-score>strong{font-size:42px}
+.candidate-score>span{font-size:22px}.candidate-score small{font-size:12px;line-height:19px}
+.score-bottom{padding:17px 28px;font-size:12px;line-height:19px}
+.table-panel{margin-top:36px}.search{padding:12px;min-height:44px}.search input{font-size:14px;width:185px}.search kbd{font-size:12px}
+table{font-size:13px}th,th button{font-size:12px}th{padding:17px 18px;color:var(--muted)}
+td{padding:16px 18px;max-width:230px}.state-row-button{font-size:14px;min-height:32px}.uf-chip{width:34px;height:30px;font-size:11px}
+.table-progress{font-size:13px}.waiting-text,.leader-pill{font-size:12px}.row-chevron{min-width:36px;min-height:36px}
+.table-footer{font-size:12px;line-height:18px;padding:18px 28px}
+.source-strip{padding:20px 24px;font-size:12px}.source-strip strong,.source-strip a{font-size:13px}
+.footer-main{font-size:13px;line-height:21px}.footer-main>span{font-size:12px}.footer-legal p,.footer-legal a{font-size:12px;line-height:21px}.visit-counter small{font-size:12px}
+@media(max-width:1100px){
+ .geography{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
+ .metric{padding:8px 16px}.metric-head{font-size:12px}.metric>strong{font-size:30px}
+ .section-heading{padding:24px}.section-heading h2,.state-heading h2{font-size:24px}
+ .state-panel{padding:24px}.map-topline{padding:0 24px}.local-avatar{display:none}
+ .candidate-number{font-size:11px}.score-bottom{flex-wrap:wrap}
+}
+@media(max-width:800px){
+ .geography{grid-template-columns:1fr}.local-avatar{display:grid}
+ .metrics{grid-template-columns:1fr 1fr;gap:24px 0}.metric{padding:8px 20px}.metric:nth-child(odd){padding-left:0}.metric:nth-child(2){border:0}
+ .election-hero{gap:24px}.hero-national{width:28%}.election-hero h1{font-size:50px}
+ .hero-national .live-status{font-size:11px}.hero-national .live-box small{font-size:11px}
+ .footer-main>span{margin-left:0}.source-strip{align-items:flex-start}
+ .table-panel .section-heading{flex-wrap:wrap}.score-bottom{gap:10px}
+}
+@media(max-width:520px){
+ .topbar-inner{height:68px}.page{padding:0 16px}
+ .election-hero{padding:30px 0 24px;gap:24px}.election-hero h1{font-size:48px}
+ .election-hero p{font-size:15px;line-height:25px}.hero-actions a{font-size:13px;padding:12px 15px}
+ .intro-meta{font-size:11px;flex-wrap:wrap}.pill{font-size:10px}
+ .hero-national{width:100%;max-width:none}.hero-national .live-box{min-width:0}
+ .hero-national .live-status{font-size:11px}.brazil-flag{width:90px}
+ .notice{padding:16px;gap:10px}.notice strong{font-size:14px;line-height:21px}.notice p{font-size:12px;line-height:20px}
+ .refresh-button{padding:11px;flex-shrink:0}.refresh-button svg{width:16px}
+ .metrics{margin:20px 0 28px;gap:16px 0;padding-bottom:20px}.metric{padding:6px 12px}
+ .metric-head{font-size:12px;align-items:flex-start;gap:6px}.metric>strong{font-size:29px}.metric>small{font-size:12px;line-height:18px}
+ .section-heading{padding:22px 20px}.section-heading h2{font-size:24px}.eyebrow{font-size:10px}
+ .map-topline{padding:0 20px;font-size:12px}.map-topline small{font-size:11px}
+ .map-wrap{padding:14px 0 0}.brazil-map{max-height:370px}.map-legend{padding:14px 20px 20px;font-size:12px}
+ .map-caption{font-size:11px;padding:14px 20px;flex-wrap:wrap;gap:8px}
+ .state-panel{padding:22px 20px}.state-heading h2{font-size:25px}.state-total strong{font-size:34px}
+ .local-candidate{gap:10px}.local-avatar{width:34px;height:34px}.local-candidate strong{font-size:13px}.local-score b{font-size:18px}
+ .candidates{padding:0 20px 20px;gap:16px}.candidate-card{padding:20px}.candidate-card h3{font-size:23px}
+ .candidate-score>strong{font-size:38px}.candidate-score>span{font-size:20px}.score-bottom{padding:16px 20px}
+ .table-panel .section-heading{gap:16px}.search input{width:100%;font-size:14px}
+ .table-footer{padding:16px 20px;font-size:11px}
+ .source-strip{padding:16px;flex-direction:column;gap:16px}.source-strip>div>span:last-child{font-size:12px;padding-left:13px}
+ .source-strip a{min-height:36px}.footer-main>p{font-size:13px}.footer-main>span{font-size:12px}.footer-legal p{font-size:12px}
+}
+.hero-national{width:40%;min-height:300px;align-items:flex-end;justify-content:flex-end}.hero-national .brazil-flag{width:100px}.hero-national .live-box{align-self:flex-end}.hero-outline{right:0}.hero-national .live-status{font-size:12px}@media(max-width:800px){.hero-national{width:28%}}@media(max-width:520px){.hero-national{width:100%;min-height:0;align-items:center;justify-content:space-between}.hero-national .brazil-flag{width:90px}.hero-national .live-box{align-self:center}}
+
+/* Full-width national flag watermark, reusing the existing local SVG. */
+.election-hero>.hero-watermark{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center;z-index:-2;pointer-events:none;opacity:.09;animation:flag-watermark 20s ease-in-out infinite}
+.election-hero::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(8,13,18,.55),rgba(8,13,18,.05))}
+.hero-national{min-height:240px;width:34%;justify-content:flex-start;align-items:flex-end}.hero-national .live-box{align-self:flex-end}
+@keyframes flag-watermark{0%,100%{opacity:.07}50%{opacity:.11}}
+@media(max-width:800px){.hero-national{width:26%;min-height:200px}}
+@media(max-width:520px){.hero-national{width:100%;min-height:0;justify-content:flex-start}.hero-national .live-box{width:100%;flex-direction:row;justify-content:space-between;align-items:center;gap:10px}.election-hero>.hero-watermark{animation:none;opacity:.07;object-position:60% center}.election-hero::before{background:rgba(8,13,18,.2)}}
+@media(prefers-reduced-motion:reduce){.election-hero>.hero-watermark{animation:none;opacity:.09}}

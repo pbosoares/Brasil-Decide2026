@@ -16,7 +16,8 @@ export function VisitCounter() {
   const [total, setTotal] = useState<number>();
   useEffect(() => {
     let active = true;
-    register().then(value => { if (active) setTotal(value); }).catch(() => {});
+    // Optional analytics must not interrupt the dashboard when a browser API is unavailable.
+    Promise.resolve().then(register).then(value => { if (active) setTotal(value); }).catch(() => {});
     return () => { active = false; };
   }, []);
   return <p className="visit-counter" title="Aberturas desta página desde a instalação do contador. Recarregamentos contam; não representa pessoas únicas.">

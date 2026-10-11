@@ -8,7 +8,7 @@ cleanup() {
 trap cleanup EXIT
 docker volume create ci-brasil-data
 docker run -d --name ci-brasil-backend --read-only --tmpfs /tmp -v ci-brasil-data:/data \
-  --cap-drop ALL --security-opt no-new-privileges -e TSE_ENABLED=false -e R2_ENABLED=false \
+  --cap-drop ALL --security-opt no-new-privileges -e TSE_ENABLED=false -e R2_ENABLED=false -e SNAPSHOT_DIRECTORY=/data \
   -p 127.0.0.1:18080:8080 "brasil-decide-backend:$RELEASE"
 docker run -d --name ci-brasil-frontend --read-only --tmpfs /tmp:uid=101,gid=101 \
   --cap-drop ALL --security-opt no-new-privileges -p 127.0.0.1:18081:8080 "brasil-decide-frontend:$RELEASE"

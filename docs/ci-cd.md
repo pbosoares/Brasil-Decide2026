@@ -1,6 +1,6 @@
 # CI/CD do Brasil Decide 2026
 
-O workflow `.github/workflows/ci.yml` valida pull requests e pushes. O deploy automático fica desativado até configurar `AUTO_DEPLOY=true` e as credenciais abaixo. Não usa dados fictícios em produção.
+O workflow `.github/workflows/ci.yml` valida pull requests e pushes. O deploy automático está habilitado com `AUTO_DEPLOY=true`, chave restrita na VPS e secrets no environment `production`, limitado à `main`. Não usa dados fictícios em produção.
 
 ## Validações obrigatórias
 

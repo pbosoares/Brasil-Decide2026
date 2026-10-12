@@ -2765,3 +2765,12 @@ td {
     border-right: 0;
   }
 }
+
+/* Size long counts against the card's available width, including on Linux fonts. */
+.metric {
+  container-type: inline-size;
+}
+
+.metric>strong {
+  font-size: clamp(16px,14cqi,34px);
+}

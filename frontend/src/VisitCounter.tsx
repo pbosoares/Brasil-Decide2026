@@ -2,15 +2,19 @@ import { useEffect, useState } from 'react';
 
 let registration: Promise<number> | undefined;
 function register() {
-  return registration ??= fetch('/api/v1/visits', {
+  if (registration) return registration;
+  const id = crypto.randomUUID();
+  const controller = new AbortController();
+  const deadline = setTimeout(() => controller.abort(), 8000);
+  return registration = fetch('/api/v1/visits', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id: crypto.randomUUID() }), signal: AbortSignal.timeout(8000),
+    body: JSON.stringify({ id }), signal: controller.signal,
   }).then(async response => {
     if (!response.ok) throw new Error('Contador indisponível');
     const data = await response.json();
     if (!Number.isSafeInteger(data.visitas) || data.visitas < 0) throw new Error('Contagem inválida');
     return data.visitas as number;
-  });
+  }).finally(() => clearTimeout(deadline));
 }
 export function VisitCounter() {
   const [total, setTotal] = useState<number>();

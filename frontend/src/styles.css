@@ -586,6 +586,11 @@ h1>span {
   gap: 8px;
 }
 
+.metric-head>span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .metric>strong {
   display: block;
   letter-spacing: -.6px;
@@ -595,6 +600,7 @@ h1>span {
 .metric>small {
   color: var(--muted);
   display: block;
+  overflow-wrap: anywhere;
 }
 
 .geography {

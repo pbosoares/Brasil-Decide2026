@@ -4,6 +4,48 @@ import waitingManifest from '../../public/results/manifest.json' with { type: 'j
 
 test.beforeEach(async ({page}) => {
   await page.route('**/results/manifest.json', route => route.fulfill({json:waitingManifest}));
+  await page.route('**/api/v1/visits', route => route.fulfill({status:503,json:{}}));
+});
+
+test('contador registra uma abertura mesmo sem AbortSignal.timeout', async ({page}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(AbortSignal, 'timeout', {value:undefined,configurable:true});
+  });
+  let registrations = 0;
+  await page.route('**/api/v1/visits', route => {
+    registrations++;
+    expect(route.request().method()).toBe('POST');
+    expect(route.request().postDataJSON().id).toMatch(/^[a-f0-9-]{36}$/);
+    return route.fulfill({json:{visitas:1234}});
+  });
+  await page.goto('/');
+  await expect(page.locator('.visit-counter strong')).toHaveText('1.234');
+  expect(registrations).toBe(1);
+});
+
+test('falhas de fotos e contador preservam o dashboard e os ícones', async ({page}) => {
+  await page.route('**/candidates/*.jpeg', route => route.abort());
+  await page.goto('/');
+  await expect(page.locator('.visit-counter strong')).toHaveText('—');
+  await expect(page.getByRole('heading',{name:'Presidência da República'})).toBeVisible();
+  for (const selector of ['.candidate-avatar','.local-avatar']) {
+    const avatars = page.locator(selector);
+    await expect(avatars).toHaveCount(2);
+    for (const avatar of await avatars.all()) {
+      await expect(avatar.locator('img')).toBeHidden();
+      await expect(avatar.locator('svg')).toBeVisible();
+    }
+  }
+});
+
+test('contador expira sem interromper a navegação', async ({page}) => {
+  await page.clock.install();
+  await page.route('**/api/v1/visits', () => new Promise<void>(() => {}));
+  await page.goto('/');
+  await page.clock.runFor(8100);
+  await expect(page.locator('.visit-counter strong')).toHaveText('—');
+  await page.getByLabel('Selecionar estado').selectOption('BA');
+  await expect(page.getByRole('heading',{name:'Bahia',exact:true})).toBeVisible();
 });
 
 test('seleção estadual usa percentuais da UF e preserva o placar nacional', async ({page}) => {
@@ -120,10 +162,31 @@ test('carrega snapshot, mantém dados válidos após erro e avisa atraso', async
 });
 
 test('layout sem overflow em celular compacto, tablet e desktop', async ({page}) => {
-  for (const width of [320,768,1440]) {
+  for (const width of [320,390,520,600,760,768,800,900,1000,1100,1280,1440]) {
     await page.setViewportSize({width,height:900}); await page.goto('/');
     await expect(page.getByRole('heading',{name:'Presidência da República'})).toBeVisible();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
+test('votações grandes cabem nos cartões em celular, tablet e desktop', async ({page}) => {
+  const snapshot = simulatedSnapshot();
+  for (const result of [snapshot.nacional.resultado, ...Object.values(snapshot.estados).map(state => state.resultado)]) {
+    for (const key of Object.keys(result.votos) as (keyof typeof result.votos)[]) result.votos[key] *= 50_000;
+    result.candidatos.forEach(candidate => { candidate.votos *= 50_000; });
+    result.diferencaVotos *= 50_000;
+  }
+  await page.route('**/results/manifest.json', route => route.fulfill({json:simulatedManifest()}));
+  await page.route('**/results/snapshots/test-version.json', route => route.fulfill({json:snapshot}));
+  for (const width of [320,390,520,600,760,768,800,900,1000,1100,1280,1440]) {
+    await page.setViewportSize({width,height:900});
+    await page.goto('/');
+    await expect(page.locator('.metric').first().locator('strong')).toHaveText('135.000.000');
+    const overflow = await page.evaluate(() => ({
+      page: document.documentElement.scrollWidth > innerWidth,
+      cards: [...document.querySelectorAll<HTMLElement>('.metric,.candidate-card,.candidate-score,.local-candidate')].filter(element => element.scrollWidth > element.clientWidth + 1).map(element => element.className),
+    }));
+    expect(overflow, `Overflow at ${width}px`).toEqual({page:false,cards:[]});
   }
 });
 

@@ -4,7 +4,7 @@ Aplicação independente para acompanhar **somente Presidente da República, seg
 
 ## Fase 1
 
-Monorepo com backend Java 21, Spring Boot 3.5, Maven e dashboard React/Vite/TypeScript implementado na Fase 2. Sem banco de dados obrigatório, nomes fixos de candidatos ou votos demonstrativos em produção.
+Monorepo com backend Java 21, Spring Boot 3.5, Maven e dashboard React/Vite/TypeScript implementado na Fase 2. Sem banco de dados obrigatório ou votos demonstrativos em produção. O frontend mantém um cadastro local de nomes, partidos, números e fotos das duas candidaturas em `frontend/src/candidates.ts`, exibido também enquanto aguarda resultados; os votos e percentuais vêm exclusivamente dos snapshots validados.
 
 Implementado: descoberta EA11, parser EA20 presidencial por abrangência, coleta configurável com até quatro consultas simultâneas às UFs, validação de identidade e totais, ETag/Last-Modified/304, timeout e retry com backoff para erros transitórios, circuito com espera após falhas, último snapshot válido, persistência com rename atômico, status de atraso, API REST e testes com arquivos oficiais. Coletas completas trocam a referência em memória somente após a gravação no disco. Arquivos que regredirem em data/hora são rejeitados; correções de votos em gerações novas são permitidas.
 
@@ -45,11 +45,11 @@ flowchart LR
   CDN --> Navegador
 ```
 
-A API interna não recebe tráfego de visitantes. A VPS de 1 vCPU / 4 GB é dedicada à coleta e publicação. O Docker limita heap a 768 MB e container a 1280 MB, deixando espaço para sistema e infraestrutura. CORS não é aberto na API interna. Apenas `/actuator/health` é exposto no Actuator.
+Os resultados públicos são distribuídos por snapshots, sem consultas dos visitantes à API interna de resultados. O contador opcional de visitas é encaminhado ao backend pelo Nginx do frontend. O Docker limita heap a 768 MB e container a 1280 MB, deixando espaço para sistema e infraestrutura. CORS não é aberto na API interna. Apenas `/actuator/health` é exposto no Actuator.
 
-A distribuição proposta é **Pages para assets estáticos e R2 com domínio próprio e cache para JSON**, sem novos deployments do Pages a cada coleta. O frontend, seu leitor de manifest/snapshot e os testes de responsividade estão implementados. Publicação R2 e testes de carga k6 ainda são etapas futuras. Ver [arquitetura de publicação](docs/publicacao.md).
+A distribuição proposta é **Pages para assets estáticos e R2 com domínio próprio e cache para JSON**, sem novos deployments do Pages a cada coleta. O frontend, seu leitor de manifest/snapshot, os testes de responsividade e o publicador R2 estão implementados. A configuração externa do R2 e os testes de carga k6 ainda são etapas futuras. Ver [arquitetura de publicação](docs/publicacao.md).
 
-Não houve deploy, contratação de serviços nem medição de 100 mil visitantes. Esta capacidade é uma meta que exige testes distribuídos, cache real e orçamento verificado.
+A implantação na VPS está registrada em [visitas](docs/visitas.md), incluindo a publicação do contador em 10/10/2026. O [CI/CD](.github/workflows/ci.yml) valida pushes em `main` com testes do frontend/backend e das imagens antes da publicação, quando `AUTO_DEPLOY=true`. A [execução de 11/10/2026](https://github.com/pbosoares/Brasil-Decide2026/actions/runs/38168635978) concluiu a publicação com sucesso. Não há medição de 100 mil visitantes; esta capacidade é uma meta que exige testes distribuídos, cache real e orçamento verificado.
 
 ## Documentação e validação
 
@@ -73,7 +73,7 @@ npm ci
 npm run dev
 ```
 
-Prévia em http://127.0.0.1:5173. Sem fonte conectada, apresenta Aguardando apuração e não inventa votos/candidaturas. O gráfico é carregado sob demanda quando existe histórico. `npm test`, `npm run build` e `npm run test:e2e` são descritos no README do frontend.
+Prévia de desenvolvimento em http://127.0.0.1:5173. Com `VITE_RESULTS_MANIFEST_URL` vazio, o Vite encaminha `/results/*` ao backend local em `127.0.0.1:8080`; sem backend, a interface permanece disponível e informa falha na consulta, preservando eventual snapshot válido do navegador. Para visualizar o manifest estático de espera sem backend, execute `npm run build` e `npm run preview`, com a variável vazia durante o build, e abra http://127.0.0.1:4173. Os perfis e fotos locais das candidaturas aparecem mesmo sem resultados; votos e percentuais aguardam dados oficiais. O gráfico é carregado sob demanda quando existe histórico. O contador opcional usa `POST /api/v1/visits`, encaminhado ao backend pelo Nginx do frontend. `npm test`, `npm run build` e `npm run test:e2e` são descritos no README do frontend.
 
 ## Próxima fase
 

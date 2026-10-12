@@ -2754,3 +2754,14 @@ td {
     opacity: .09;
   }
 }
+
+@media (max-width:360px) {
+  .metrics {
+    grid-template-columns: minmax(0,1fr);
+  }
+  .metric {
+    padding-left: 0;
+    padding-right: 0;
+    border-right: 0;
+  }
+}
